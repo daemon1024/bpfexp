@@ -24,12 +24,18 @@ const event *unused __attribute__((unused));
 
 SEC("kprobe/sys_execve")
 int kprobe_execve(struct pt_regs *ctx) {
-  u64 id = bpf_get_current_pid_tgid();
-  u32 tgid = id >> 32;
-
   struct task_struct *t = (struct task_struct *)bpf_get_current_task();
   u32 pid_ns = BPF_CORE_READ(t, nsproxy, pid_ns_for_children, ns).inum;
   u32 mnt_ns = BPF_CORE_READ(t, nsproxy, mnt_ns, ns).inum;
+  struct pt_regs *real_regs;
+  real_regs = (struct pt_regs *)PT_REGS_PARM1(ctx);
+
+  if (pid_ns == PROC_PID_INIT_INO) {
+    return 0;
+  }
+
+  u64 id = bpf_get_current_pid_tgid();
+  u32 tgid = id >> 32;
 
   event *task_info;
 
@@ -41,7 +47,8 @@ int kprobe_execve(struct pt_regs *ctx) {
   task_info->pid = tgid;
   task_info->pid_ns = pid_ns;
   task_info->mnt_ns = mnt_ns;
-  bpf_get_current_comm(&task_info->comm, 80);
+  bpf_probe_read_str(&task_info->comm, 80,
+                     (void *)PT_REGS_PARM1_CORE(real_regs));
 
   bpf_ringbuf_submit(task_info, 0);
 
