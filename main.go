@@ -32,7 +32,7 @@ type eventBPF struct {
 	Pid   uint32
 	PidNS uint32
 	MntNS uint32
-	Comm  [80]uint8
+	Comm  [256]uint8
 }
 
 // nskey Structure acts as an Identifier for containers
@@ -45,7 +45,7 @@ type deets struct {
 	ContainerID   string
 	ContainerName string
 	ContainerPID  string
-	ProcessName   string
+	Content       string
 	ProcessPID    uint32
 }
 
@@ -88,8 +88,6 @@ func main() {
 		cmap[key] = c
 	}
 
-	fn := "sys_execve"
-
 	stopper := make(chan os.Signal, 1)
 	signal.Notify(stopper, os.Interrupt, syscall.SIGTERM)
 
@@ -103,7 +101,7 @@ func main() {
 	}
 	defer objs.Close()
 
-	kp, err := link.Kprobe(fn, objs.KprobeExecve, nil)
+	kp, err := link.Kprobe("sys_sendto", objs.TpSendto, nil)
 	if err != nil {
 		log.Fatalf("opening kprobe: %s", err)
 	}
@@ -149,12 +147,13 @@ func main() {
 
 		if val, ok := cmap[key]; ok {
 			val.ProcessPID = event.Pid
-			val.ProcessName = unix.ByteSliceToString(event.Comm[:])
+			val.Content = unix.ByteSliceToString(event.Comm[7:])
+			fmt.Printf("%v", event.Comm)
 			b, err := json.MarshalIndent(val, "", "  ")
 			if err != nil {
 				fmt.Println("error:", err)
 			}
-			fmt.Print(string(b))
+			fmt.Print(string(b), "\n")
 
 		}
 
