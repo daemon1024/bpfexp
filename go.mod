@@ -1,11 +1,11 @@
-module example.com/indiafoss
+module example.com/protecc-env
 
 go 1.18
 
 require (
-	github.com/cilium/ebpf v0.9.1
+	github.com/cilium/ebpf v0.10.0
 	github.com/docker/docker v20.10.17+incompatible
-	golang.org/x/sys v0.0.0-20220715151400-c0bba94af5f8
+	golang.org/x/sys v0.9.0
 )
 
 require (

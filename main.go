@@ -88,7 +88,7 @@ func main() {
 		cmap[key] = c
 	}
 
-	fn := "sys_execve"
+	// fn := "sys_execve"
 
 	stopper := make(chan os.Signal, 1)
 	signal.Notify(stopper, os.Interrupt, syscall.SIGTERM)
@@ -103,7 +103,7 @@ func main() {
 	}
 	defer objs.Close()
 
-	kp, err := link.Kprobe(fn, objs.KprobeExecve, nil)
+	kp, err := link.AttachLSM(link.LSMOptions{Program: objs.EnforceFile})
 	if err != nil {
 		log.Fatalf("opening kprobe: %s", err)
 	}

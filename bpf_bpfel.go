@@ -28,9 +28,9 @@ func loadBpf() (*ebpf.CollectionSpec, error) {
 //
 // The following types are suitable as obj argument:
 //
-//     *bpfObjects
-//     *bpfPrograms
-//     *bpfMaps
+//	*bpfObjects
+//	*bpfPrograms
+//	*bpfMaps
 //
 // See ebpf.CollectionSpec.LoadAndAssign documentation for details.
 func loadBpfObjects(obj interface{}, opts *ebpf.CollectionOptions) error {
@@ -54,7 +54,7 @@ type bpfSpecs struct {
 //
 // It can be passed ebpf.CollectionSpec.Assign.
 type bpfProgramSpecs struct {
-	KprobeExecve *ebpf.ProgramSpec `ebpf:"kprobe_execve"`
+	EnforceFile *ebpf.ProgramSpec `ebpf:"enforce_file"`
 }
 
 // bpfMapSpecs contains maps before they are loaded into the kernel.
@@ -96,12 +96,12 @@ func (m *bpfMaps) Close() error {
 //
 // It can be passed to loadBpfObjects or ebpf.CollectionSpec.LoadAndAssign.
 type bpfPrograms struct {
-	KprobeExecve *ebpf.Program `ebpf:"kprobe_execve"`
+	EnforceFile *ebpf.Program `ebpf:"enforce_file"`
 }
 
 func (p *bpfPrograms) Close() error {
 	return _BpfClose(
-		p.KprobeExecve,
+		p.EnforceFile,
 	)
 }
 
@@ -115,5 +115,6 @@ func _BpfClose(closers ...io.Closer) error {
 }
 
 // Do not access this directly.
+//
 //go:embed bpf_bpfel.o
 var _BpfBytes []byte
